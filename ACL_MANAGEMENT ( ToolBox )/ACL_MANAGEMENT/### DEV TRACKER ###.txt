@@ -1,0 +1,222 @@
+------------------------------------------------------------------------------------------------------------------------------------------------------
+Major Issue and Little Bug : 
+----------------------------
+
+### ONGOING ###
+
++ 20260416 : Also during AXA ACL Extract we get timeout on logon session ( 20 minutes by default I guess ).
+---> The parallel workflow may change things... Maybe... Or we need sole long-term solution for slow vaults ( or when too many safes ).
+---> Study and Development in progress... No solution for the moment, but the multi-threading is helping here.
+
++ ###TBC###
+---> ###TBC###
+
+### CLOSED ###
+
++ 20250113 : Detected during Ondrej Training... Failed to REFRESH ACL on FR2 ???
+---> Investigation done on Ondrej laptop. The root cause is because of LOCAL_CPM_NAME_PATTERN which is used for filtering REST API generator for security reasons.
+---> The real root cause is because CPM Name Pattern was containing ".*" which cause FINDSTR to ignore all lines even if we have additional keywords in filter.
+---> After discussion and testing, it seems this feature is not really relevant and may cause limitation if we want to update CPM ACL not using PVWA menus.
+---> Accordingly, I decided to remove LOCAL_CPM_NAME_PATTERN from all scripts. This variable is not used anymore in 20250114 version.
+
++ 20260416 : Glitch detected during AXA Vault ACL Extract because some Safes get "strange" Description which include CR+LF characters.
+---> As result, the ACL Extract ( second part of $2_EXTRACT_ACL_.cmd script ) is failing because SafeName is empty.
+---> Here below the current columns from "+_???_+_EXTRACT_SAFES_LIST_.csv" file...
+     "safeName","description","managingCPM","numberOfVersionsRetention","numberOfDaysRetention","EnableOLAC"
+---> We have to change the bin\Safe-Management-CUSTOM.ps1 PowerShell script to ignore unnecessary columns ( like "description" or more ).
+---> All next steps from $2_EXTRACT_ACL_.cmd need also to be adjusted for consistency reasons.
+---> Study and Adjustment is now completed and tested !
+
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
+Requirements : 
+--------------
+
++ Need to extract ALL ACL ( including Safes not accessible with REST API )...
+---> Possible Solution = Using PACLI + Dedicated Conversion Matrix in LogParser.
+---> Solution Limitation = PACLI should not be used for Refreshing ACLs but only to Extract !
+
++ Need to create light documentation on How-To use the tools and relevant supported scenarios...
+---> One Doc ( as RTF / WordPad ) for each primary Commands --> INIT + EXTRACT + REFRESH + TERM.
+---> One Doc ( as RTF / WordPad ) for explaining the overall processing and workspace organization.
+---> One Doc ( as RTF / WordPad ) for Tool Pack installation and configuration.
+---> One Doc ( as RTF / WordPad ) for performing quick testing on simple/basic scenarios.
+
++ ### TBC ###
+
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
+Version Tracking :
+------------------
+
++ ACL_MANAGEMENT_20241221...
+---> BETA version ( not shared )
+
++ ACL_MANAGEMENT_20250107...
+---> First RC version ( Release Candidate ) shared with Ondrej ( as BETA Tester ).
+---> Minor patching on CUSTOM PowerShell to support more than 15 Owners by Safe.
+---> Pre-Configured to work on LAB ( RED/... ) or FRANCE PROD Systems ( FR1/FR2/FR3 ).
+
++ ACL_MANAGEMENT_20250112...
+---> Modify $$$_EXTRACT_VAULT_OWNERS_.cmd to consider ALL Safes ( ignoring filter with Safe Pattern ).
+---> Add ACL_MANAGEMENT Excel Script ( shared on CyberArk OneDrive ).
+
++ ACL_MANAGEMENT_20250113... ### NOT SHARED YET ###
+---> Minor update on DEV TRACKER file and Office Script ( check online anyway as they are moving frequently ).
+
++ ACL_MANAGEMENT_20250114...
+---> Patch Convert Role to Rest API by removing CPM Name Pattern filter ( FINDSTR ).
+---> Patch EXTRACT Main Script by removing CPM Name Pattern referral.
+---> Patch REFRESH Main Script by removing CPM Name Pattern referral.
+---> Patch INIT main Script by removing CPM Name Pattern referral and setup into functions.
+---> Update current DEV TRACKER File ( as usual ).
+
++ ACL_MANAGEMENT_20250205...
+---> Patch +Safe-Management-CUSTOM to remove ocal logs ( not really used ).
+---> This patched version had not been shared.
+
++ ACL_MANAGEMENT_20250303...
+---> Adding LogParser rules for PAM Deployment ( working with David on this ).
+---> This patched version had not been shared.
+
++ ACL_MANAGEMENT_20250706...
+---> Minor update and big cleanup on LAB LogParser Matrix. For future sharing with CyberArk Community.
+---> This patched version had not been shared.
+
++ ACL_MANAGEMENT_20250718...
+---> Same version as 20250706.
+---> This patched version had not been shared.
+
++ ACL_MANAGEMENT_20250904...
+---> Big reorganization of Scripts, File Names, Folders to integrate Config Files inside "CFG" sub-folder.
+Requirement : Need to transpose INIT Process using Configuration File ( as TSV or INI ) with all required Configuration and Context Data...
+    ---> This requirement is first needed if we want to share the ACL_MANAGEMENT Pack with collateral Partners ( like MAIF ).
+    ---> Any Data related to LAB or Kyndryl Prod should not be anymore in Tool Pack.
+    ---> Need more Documentation for building Configuration and Context Matrix.
+---> All previous sub-scripts are now merged to few only.
+---> SQL, BIN, XLS and TMP sub-folders are now created to organize files. They where all in one folder before.
+---> Remove excessive messages from CyberArk ps1 script.
+---> This new patched and revamped version had been synced on One Drive and also Published by mail ( ZIP file ).
+
++ ACL_MANAGEMENT_20250905...
+---> Minor correction in the Extract script to ignore the SafeName item from SafeList when extracting Owners.
+---> This patched version had been synced on Official OneDrive sharing folder.
+
++ ACL_MANAGEMENT_20260119...
+---> Add "-DisableSSLVerify" option on PowerShell lines ( in scripts $2 and $3 ).
+---> This patched version had been synced on Official OneDrive sharing folder.
+
++ ACL_MANAGEMENT_20260303...
+---> Make integration from last version of CyberArk PowerShell script ( downloaded from GitHub -> version from 20250807 )...
+---> Link on GitHub : https://github.com/cyberark/epv-api-scripts/tree/main/Safe%20Management
+---> Many changes in code ( since 2 years ). Maybe new facilities or commands to consider. Study in progress ( starting on 20250224 ).
+---> On previous CUSTOM PowerShell Script ( using version from 20240905 ), we were patching following parts :
+     - Adding "Members" in "$ReportPath" section ( line 94 ) + Add option to show "SafeMembers" as console output when "$ReportPath" was not specified ( lines 1252-1258 ).
+     - Extend "SafeMembers" list because REST API is limited to 25 by default ( line 998 ) + Correct "$_safeOwners" when "$g_includeDefaultUsers" was true ( lines 1003-1005 ).
+     - Remove any line feeding log file ( lines 265, 266, 269, 270, 320, 323, 324, 1032, 1310, 1325 ).
+     +++ Similar adjustments need to be transposed on new CUSTOM version.
+---> Study from new code was completed on 20260225 and we make following adjustments in code :
+     - Adding "Members" in "$ReportPath/$OutputPath" section ( line 107 ) + Add option to show "SafeMembers" as console output when "$OutputPath" was not specified ( lines 1662-1668 ).
+     - Extend "SafeMembers" list because REST API is limited to 25 by default ( line 1342 ) + Correct "$_safeOwners" when "$g_includeDefaultUsers" was true ( lines 1347-1349 ).
+     - Add parameter to specify "$VaultContext" as prefix of log files to permit searching "ERROR" patterns after script execution ( lines 177-180 + 205-211 ).
+     - Adjust script version as "2.2.6+KVS_CUSTOM_20260225" ( line 201 ).
+     - Adjust error finding when User/Group did not exist as Safe members ( line 1287 ).
+     - Minor corrections ( lines 1412 + 1522 )
+---> New folder, named "log", was added into workspace folder structure to store temporary log files from PowerShell.
+---> Update on "$1_INIT_.cmd" connection script :
+     - Add capability to consider partial Configuration File Name where suffix as ".ini" is not specified ( line 31 ).
+     - Reorder Tags in Windows Title ( line 83 ).
+---> Update on "$2_EXTRACT_ACL_.cmd" permission extraction script :
+     - Add option to rerun the Data Conversion only without rerunning the permission extract, with "-CONVERT-ONLY" command line parameter ( lines 27-31 + 45 ).
+     - Add management from PowerShell log files and add "$VaultContext" parameter ( lines 38 + 39 + 63-67 + 84 ).
+     - Remove "memberLocation" column from script and all conversion files from "sql" folder ( lines 48 + 50 + 54 ).
+     - Add creation from "SUPPRESS" input file to support new permission deletion script.
+     - Add option to generate PowerShell DEBUG log files ( lines 29-31 + 39 + 60 + 84 ).
+---> Update on "$3_REFRESH_ACL_.cmd" permission adding or updating script :
+     - Add option to run the Data Conversion only without running the permission refresh on Vault, with "-CONVERT-ONLY" command line parameter ( line 39 ).
+     - Add management from PowerShell log files and add "$VaultContext" parameter ( lines 41 + 42 + 49-53 ).
+     - Remove "memberLocation" column from script and all conversion files from "sql" folder ( line 32 ).
+     - Add option to generate PowerShell DEBUG log files ( lines 28-30 + 42 ).
+---> Create new "$3_SUPPRESS_ACL_.cmd" script for permission deletion in Vault :
+     - Script was created using Refresh script as template but did not use LogParser to convert ROLE_CODE. The PowerShell input file is just created based on Safe Name and Member Name.
+     - Script include same improvements as others, with log file management and partial execution with command line option "-CONVERT-ONLY".
+---> Update on "$4_TERM_.cmd" session termination script :
+     - Add one valid logoff pattern when connection is disconnected ( lines 30-31 + 35 ).
+---> Adjust Vault Configuration files ( in "cfg" folder ) based on last known version on Production or LAB systems ---> COMPLETED ON 202603##.
+---> Adjust LogParser Conversion Matrix files ( in "sql" folder ) based on known version on Production or LAB systems ---> COMPLETED ON 202603##.
+---> Recompute all reverse matrix files ( LogParser 3 ) based on refreshed conversion matrix ( LogParser 2 ).
+---> Add place-holder files in "log" and "tmp" folders which are empty in Tool Package ZIP file, and causing error when unzipping Pack file.
+---> Update DEV TRACKER file ( as usual ).
+---> This patched version is only published on NEW DEV shared folder for deep testing and assessment by CyberArk Admins and Community Participants.
+---> NEW DEV shared folder = "...\OneDrive - kyndryl\mettling-projects - Public Discussions ( with co-workers )\TEMP\ACL_MANAGEMENT_NEW"
+---> Testing and Assessment period from 20260303 to 20260320.
+
++ ACL_MANAGEMENT_20260320...
+---> Minor correction to keep "ACL_PARAM_temp_config_file_name" after running $4 Script.
+---> Adding "doc" folder in Tool Package with place-holder file inside ( to correct ZIP behavior ).
+---> Update DEV TRACKER file ( as usual ).
+---> This patched version is only published on NEW DEV shared folder for deep testing and assessment by CyberArk Admins and Community Participants.
+---> NEW DEV shared folder = "...\OneDrive - kyndryl\mettling-projects - Public Discussions ( with co-workers )\TEMP\ACL_MANAGEMENT_NEW"
+---> Testing and Assessment period from 20260303 to 202603## ( continuing assessment started before ).
+
++ ACL_MANAGEMENT_20260408...
+---> Minor typo correction in "$2_EXTRACT_ACL_.cmd" -> TF replaced by IF in line 66.
+---> Update DEV TRACKER file ( as usual ).
+---> This patched version is only published on NEW DEV shared folder for deep testing and assessment by CyberArk Admins and Community Participants.
+---> NEW DEV shared folder = "...\OneDrive - kyndryl\mettling-projects - Public Discussions ( with co-workers )\TEMP\ACL_MANAGEMENT_NEW"
+---> Testing and Assessment period from 20260303 to 202603## ( continuing assessment started before ).
+
++ ACL_MANAGEMENT_20260415...
+---> I finally find the right syntax for disconnecting the session. $4_TERM_.cmd had been fully tested and updated accordingly.
+---> Also minor adjustment on $1_INIT_.cmd was done on batch temporary variable.
+---> Also adding testing for CMD Mandatory Parameters in $2_EXTRACT_ACL_.cmd, $3_REFRESH_ACL_.cmd and $3_SUPPRESS_ACL_.cmd.
+---> Update DEV TRACKER file ( as usual ).
+---> This patched version is only published on NEW DEV shared folder for deep testing and assessment by CyberArk Admins and Community Participants.
+---> NEW DEV shared folder = "...\OneDrive - kyndryl\mettling-projects - Public Discussions ( with co-workers )\TEMP\ACL_MANAGEMENT_NEW"
+---> Testing and Assessment period from 20260303 to 202603## ( continuing assessment started before ).
+
++ ACL_MANAGEMENT_20260416...
+---> Implement solution for 1 bug and 1 improvement... See first section of tracker for details about bug.
+---> New improvement to speed-up the ACL Extract by running PowerShell in parallel :
+     - Solution is to create temporary CMD in \tmp folder and use START /MIN to launch them in background.
+     - When too many scripts ( temporary CMD ) exist and runs, according to configurable limit, we have to make pause ( TIMEOUT /T ) before launching next one.
+     - When temporary CMD is completed, the temporary script is deleted ( by itself ) to decrease the temporary CMD buffer.
+     - At the end of the list ( FOR /F ), all temporary CMD are checked before concatenating all data into one final file.
+     - We create temporary CMD and temporary DATA file into /tmp folder. Final Extracted DATA file is also stored in /tmp and we don't change the DATA Conversion part.
+---> Also change had been done on Safe-Management-CUSTOM.ps1 on line 1508 to remove "description" from Safe list output ( to file ).
+---> Update DEV TRACKER file ( as usual ).
+---> This patched version is only published on NEW DEV shared folder for deep testing and assessment by CyberArk Admins and Community Participants.
+---> NEW DEV shared folder = "...\OneDrive - kyndryl\mettling-projects - Public Discussions ( with co-workers )\TEMP\ACL_MANAGEMENT_NEW"
+---> Testing and Assessment period from 20260303 to 202603## ( continuing assessment started before ).
+
++ ACL_MANAGEMENT_20260417...
+---> New improvement by implementing more Authentication Methods ( like for LDAP ) :
+     - We add one more internal variable/parameter as ACL_PARAM_temp_authentication_type and we ask for input ( if not cyberark by default ).
+     - We change curl command in $1_INIT_.cmd script. No need to adapt PowerShell syntax with -AuthType because we use Token.
+     - Study and Development is now completed and tested on PAM+RED+JAN Vaults !
+---> Minor change on management from curl log and error. Change done on $1_INIT_.cmd and also $4_TERM_.cmd.
+---> Add "-AuthType cyberark" for all scripts which use the PowerShell script. Done on $2_EXTRACT_ACL_.cmd, $3_REFRESH_ACL_.cmd and $3_SUPPRESS_ACL_.cmd.
+---> Update DEV TRACKER file ( as usual ).
+---> This patched version is only published on NEW DEV shared folder for deep testing and assessment by CyberArk Admins and Community Participants.
+---> NEW DEV shared folder = "...\OneDrive - kyndryl\mettling-projects - Public Discussions ( with co-workers )\TEMP\ACL_MANAGEMENT_NEW"
+---> Testing and Assessment period from 20260303 to 202603## ( continuing assessment started before ).
+
++ ACL_MANAGEMENT_20260418...
+---> This is the new published version based on 20260417 version. This version replace previous published version on CyberArk\ACL_MANAGEMENT OneDrive sharing.
+---> Old ACL_MANAGEMENT ( Publishing ) folder had been cleaned-up and now only link ( url file ) to new publication folder is inside.
+---> Old ACL_MANAGEMENT_NEW ( Testing and Assessment ) folder had been also cleaned-up and only link ( url file ) is inside also.
+---> New ACL_MANAGEMENT sharing folder had been created on OneDrive as "C:\Users\FrankMettling\OneDrive - kyndryl\mettling-projects - KVS Repository\ACL_MANAGEMENT"...
+     - Access rules are set as View Only ( for Teams Members and Visitors ).
+     - The link for web access is https://kyndryl.sharepoint.com/:f:/r/teams/mettlingprojects/Shared%20Documents/KVS%20Repository/ACL_MANAGEMENT
+---> Update DEV TRACKER file ( as usual ) and sync to ZIP and New OneDrive place.
+---> Mail had been sent to CyberArk "Fun" Club and dedicated message also posted into FTTB Chat window.
+
+
+
++ ### TBC ###
+---> ### TBC ###
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
+...
